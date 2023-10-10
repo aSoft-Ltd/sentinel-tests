@@ -6,7 +6,6 @@ import kommander.expectFailure
 import kommander.toContain
 import koncurrent.later.await
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
@@ -18,6 +17,7 @@ import raven.LocalMemoryMailbox
 import raven.MailBox
 import raven.MockMailer
 import raven.MockMailerConfig
+import sentinel.exceptions.InvalidTokenForRegistrationException
 import sentinel.exceptions.UserAlreadyCompletedRegistrationException
 import sentinel.exceptions.UserDidNotBeginRegistrationException
 import sentinel.params.SendVerificationLinkParams
@@ -45,21 +45,6 @@ class RegistrationServiceFlixTest {
     }
 
     @Test
-    fun should_be_able_to_begin_the_registration_process() = runTest(timeout = 1.minutes) {
-        val res = api.signUp(SignUpParams("Anderson", "andy@lamax.com")).await()
-        expect(res.email).toBe("andy@lamax.com")
-    }
-
-    @Test
-    fun should_fail_to_sign_up_an_already_verified_account() = runTest {
-        api.signUp(SignUpParams("Steve Rogers", "steve@rogers.com")).await()
-        val exp = expectFailure {
-            api.signUp(SignUpParams("Anderson", "steve@rogers.com")).await()
-        }
-        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException("steve@rogers.com").message)
-    }
-
-    @Test
     fun should_be_able_to_send_email_verification_for_a_user_who_has_began_the_registration_process() = runTest {
         val res = api.signUp(SignUpParams("Pepper Pots", "pepper@lamax.com")).await()
         val params = SendVerificationLinkParams(email = res.email, link = "https://test.com")
@@ -73,13 +58,30 @@ class RegistrationServiceFlixTest {
 
     @Test
     fun should_be_able_to_complete_registration() = runTest {
-        val res = api.signUp(SignUpParams("Tony Stark", "tony@stark.com")).await()
-        val params = SendVerificationLinkParams(email = res.email, link = "https://test.com")
-        api.sendVerificationLink(params).await()
+        val params1 = SignUpParams("Tony Stark", "tony@stark.com")
+        val res = api.signUp(params1).await()
+        val params2 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
+
+        api.sendVerificationLink(params2).await()
+
         val token = mailbox.load().await().first { msg ->
             msg.to.map { it.email.value }.contains(res.email)
         }.body.split(" ").last()
+
         api.verify(VerificationParams(email = res.email, token = token)).await()
+
+        val exp = expectFailure { api.signUp(params1).await() }
+        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException(params1.email).message)
+    }
+
+    @Test
+    fun should_fail_to_verify_a_rogue_token() = runTest {
+        val res = api.signUp(SignUpParams("Wanda Max", "wanda@max.com")).await()
+        val params1 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
+        api.sendVerificationLink(params1).await()
+        val params2 = VerificationParams(email = res.email, token = "garbage")
+        val exp = expectFailure { api.verify(params2).await() }
+        expect(exp.message).toBe(InvalidTokenForRegistrationException(params2.token).message)
     }
 
     @Test
