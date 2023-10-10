@@ -36,13 +36,11 @@ class RegistrationServiceFlixTest {
 
     private val api: RegistrationService by lazy {
         val scope = CoroutineScope(SupervisorJob())
-        val address = "localhost:27017"
-        val client = MongoClient.create("mongodb://root:pass@$address")
+        val client = MongoClient.create("mongodb://root:pass@localhost:27017")
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
         val mailer = MockMailer(MockMailerConfig(box = mailbox))
         val logger = Logger(ConsoleAppender())
-        logger.debug("address: $address")
         RegistrationServiceFlix(RegistrationServiceFlixConfig(scope, db, clock, mailer, logger, emailConfig))
     }
 
@@ -54,28 +52,28 @@ class RegistrationServiceFlixTest {
 
     @Test
     fun should_fail_to_sign_up_an_already_verified_account() = runTest {
-        api.signUp(SignUpParams("Anderson", "andy@lamax.com")).await()
+        api.signUp(SignUpParams("Steve Rogers", "steve@rogers.com")).await()
         val exp = expectFailure {
-            api.signUp(SignUpParams("Anderson", "andy@lamax.com")).await()
+            api.signUp(SignUpParams("Anderson", "steve@rogers.com")).await()
         }
-        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException("andy@lamax.com").message)
+        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException("steve@rogers.com").message)
     }
 
     @Test
     fun should_be_able_to_send_email_verification_for_a_user_who_has_began_the_registration_process() = runTest {
-        val res = api.signUp(SignUpParams("Anderson", "anderson@lamax.com")).await()
+        val res = api.signUp(SignUpParams("Pepper Pots", "pepper@lamax.com")).await()
         val params = SendVerificationLinkParams(email = res.email, link = "https://test.com")
         api.sendVerificationLink(params).await()
         val message = mailbox.load().await().first { msg ->
             msg.to.map { it.email.value }.contains(res.email)
         }
         expect(message.subject).toBe(emailConfig.subject)
-        expect(message.body).toContain("Hi Anderson")
+        expect(message.body).toContain("Hi Pepper Pots")
     }
 
     @Test
     fun should_be_able_to_complete_registration() = runTest {
-        val res = api.signUp(SignUpParams("Anderson", "anderson@lamax.com")).await()
+        val res = api.signUp(SignUpParams("Tony Stark", "tony@stark.com")).await()
         val params = SendVerificationLinkParams(email = res.email, link = "https://test.com")
         api.sendVerificationLink(params).await()
         val token = mailbox.load().await().first { msg ->
