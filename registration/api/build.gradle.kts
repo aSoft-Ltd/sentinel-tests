@@ -1,5 +1,4 @@
-import docker.DockateExtension
-import docker.DockatePlugin
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
@@ -8,32 +7,31 @@ plugins {
     id("tz.co.asoft.library")
 }
 
-apply<DockatePlugin>()
-
 description = "A kotlin multiplatform server registration sdk"
 
 kotlin {
     jvm { library() }
+    if (Targeting.JS) js(IR) { library() }
+//    if (Targeting.WASM) wasm { library() }
+    val osxTargets = if (Targeting.OSX) osxTargets() else listOf()
+    val ndkTargets = if (Targeting.NDK) ndkTargets() else listOf()
+    val linuxTargets = if (Targeting.LINUX) linuxTargets() else listOf()
+    val mingwTargets = if (Targeting.MINGW) mingwTargets() else listOf()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.sentinel.registration.api.flix)
-                api(libs.kommander.coroutines)
+                implementation(libs.sentinel.registration.api.flix)
+                implementation(kotlinx.serialization.json)
+                implementation(libs.lexi.console)
+                implementation(libs.kommander.coroutines)
             }
         }
-    }
-}
 
-configure<DockateExtension> {
-    val (run, _, remove) = addDockerContainerForMongo(
-        image = "mongodb/mongodb-community-server:7.0.0-ubuntu2204",
-        username = "root",
-        password = "pass",
-        port = 27017
-    )
-    tasks.withType(KotlinJvmTest::class.java).forEach {
-        it.dependsOn(run)
-        it.finalizedBy(remove)
+        val jvmTest by getting {
+            dependencies {
+                implementation(ktor.client.cio)
+            }
+        }
     }
 }

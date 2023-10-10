@@ -18,8 +18,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.sentinel.registration.service.flix)
-                api(libs.kommander.coroutines)
+                implementation(libs.sentinel.registration.service.flix)
+                implementation(libs.kommander.coroutines)
             }
         }
     }
