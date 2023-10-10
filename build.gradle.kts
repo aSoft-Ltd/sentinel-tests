@@ -18,55 +18,7 @@ val v = libs.versions.asoft.get()
 group = "tz.co.asoft"
 version = v
 
-tasks.dokkaHtmlMultiModule {
-    moduleName.set("Sentinel Server")
-    outputDirectory.set(rootDir.resolve("docs"))
-    moduleVersion.set(libs.versions.asoft.get())
-    includes.from("ReadMe.md")
-}
-
 allprojects {
     group = "tz.co.asoft"
     version = v
-}
-
-subprojects {
-    apply(plugin = "org.jetbrains.dokka")
-    apply(plugin = "com.vanniktech.maven.publish")
-
-    val p = this
-    version = v
-
-    configure<MavenPublishBaseExtension> {
-        publishToMavenCentral(SonatypeHost.DEFAULT,automaticRelease = true)
-
-        signAllPublications()
-
-        coordinates("tz.co.asoft", p.name, v)
-
-        pom {
-            name.set(p.name)
-            description.set(p.description)
-            inceptionYear.set("2019")
-            url.set("https://github.com/aSoft-Ltd/sentinel-client")
-            licenses {
-                license {
-                    name.set("MIT License")
-                    url.set("https://github.com/aSoft-Ltd/sentinel-client/blob/master/LICENSE")
-                }
-            }
-            developers {
-                developer {
-                    id.set("andylamax")
-                    name.set("Anderson Lameck")
-                    url.set("https://github.com/andylamax/")
-                }
-            }
-            scm {
-                url.set("https://github.com/aSoft-Ltd/sentinel-client/")
-                connection.set("scm:git:git://github.com/aSoft-Ltd/sentinel-client.git")
-                developerConnection.set("scm:git:ssh://git@github.com/aSoft-Ltd/sentinel-client.git")
-            }
-        }
-    }
 }

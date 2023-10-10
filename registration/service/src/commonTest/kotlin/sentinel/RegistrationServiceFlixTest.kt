@@ -1,28 +1,28 @@
+package sentinel
+
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import kommander.expect
 import kommander.expectFailure
 import kommander.toContain
 import koncurrent.later.await
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
 import krono.SystemClock
+import lexi.ConsoleAppender
 import lexi.Logger
 import raven.AddressInfo
 import raven.LocalMemoryMailbox
 import raven.MailBox
 import raven.MockMailer
 import raven.MockMailerConfig
-import sentinel.RegistrationEmailConfig
-import sentinel.RegistrationService
-import sentinel.RegistrationServiceFlix
-import sentinel.RegistrationServiceFlixConfig
 import sentinel.exceptions.UserAlreadyCompletedRegistrationException
 import sentinel.exceptions.UserDidNotBeginRegistrationException
 import sentinel.params.SendVerificationLinkParams
 import sentinel.params.SignUpParams
 import sentinel.params.VerificationParams
-import kotlin.test.Test
 
 class RegistrationServiceFlixTest {
 
@@ -36,17 +36,18 @@ class RegistrationServiceFlixTest {
 
     private val api: RegistrationService by lazy {
         val scope = CoroutineScope(SupervisorJob())
-        val client = MongoClient.create("mongodb://root:pass@127.0.0.1:27017/")
+        val address = "localhost:27017"
+        val client = MongoClient.create("mongodb://root:pass@$address")
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
         val mailer = MockMailer(MockMailerConfig(box = mailbox))
-        val logger = Logger()
+        val logger = Logger(ConsoleAppender())
+        logger.debug("address: $address")
         RegistrationServiceFlix(RegistrationServiceFlixConfig(scope, db, clock, mailer, logger, emailConfig))
     }
 
-
     @Test
-    fun should_be_able_to_begin_the_registration_process() = runTest {
+    fun should_be_able_to_begin_the_registration_process() = runTest(timeout = 1.minutes) {
         val res = api.signUp(SignUpParams("Anderson", "andy@lamax.com")).await()
         expect(res.email).toBe("andy@lamax.com")
     }
