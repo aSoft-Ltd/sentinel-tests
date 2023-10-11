@@ -34,7 +34,7 @@ class RegistrationServiceFlixTest {
         template = "Hi {{name}}, here is your token {{token}}"
     )
 
-    private val api: RegistrationService by lazy {
+    private val service: RegistrationService by lazy {
         val scope = CoroutineScope(SupervisorJob())
         val client = MongoClient.create("mongodb://root:pass@localhost:27017")
         val db = client.getDatabase("test-trial")
@@ -46,9 +46,9 @@ class RegistrationServiceFlixTest {
 
     @Test
     fun should_be_able_to_send_email_verification_for_a_user_who_has_began_the_registration_process() = runTest {
-        val res = api.signUp(SignUpParams("Pepper Pots", "pepper@lamax.com")).await()
+        val res = service.signUp(SignUpParams("Pepper Pots", "pepper@lamax.com")).await()
         val params = SendVerificationLinkParams(email = res.email, link = "https://test.com")
-        api.sendVerificationLink(params).await()
+        service.sendVerificationLink(params).await()
         val message = mailbox.load().await().first { msg ->
             msg.to.map { it.email.value }.contains(res.email)
         }
@@ -59,35 +59,35 @@ class RegistrationServiceFlixTest {
     @Test
     fun should_be_able_to_complete_registration() = runTest {
         val params1 = SignUpParams("Tony Stark", "tony@stark.com")
-        val res = api.signUp(params1).await()
+        val res = service.signUp(params1).await()
         val params2 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
 
-        api.sendVerificationLink(params2).await()
+        service.sendVerificationLink(params2).await()
 
         val token = mailbox.load().await().first { msg ->
             msg.to.map { it.email.value }.contains(res.email)
         }.body.split(" ").last()
 
-        api.verify(VerificationParams(email = res.email, token = token)).await()
+        service.verify(VerificationParams(email = res.email, token = token)).await()
 
-        val exp = expectFailure { api.signUp(params1).await() }
+        val exp = expectFailure { service.signUp(params1).await() }
         expect(exp.message).toBe(UserAlreadyCompletedRegistrationException(params1.email).message)
     }
 
     @Test
     fun should_fail_to_verify_a_rogue_token() = runTest {
-        val res = api.signUp(SignUpParams("Wanda Max", "wanda@max.com")).await()
+        val res = service.signUp(SignUpParams("Wanda Max", "wanda@max.com")).await()
         val params1 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
-        api.sendVerificationLink(params1).await()
+        service.sendVerificationLink(params1).await()
         val params2 = VerificationParams(email = res.email, token = "garbage")
-        val exp = expectFailure { api.verify(params2).await() }
+        val exp = expectFailure { service.verify(params2).await() }
         expect(exp.message).toBe(InvalidTokenForRegistrationException(params2.token).message)
     }
 
     @Test
     fun should_fail_to_send_an_email_verification_for_a_user_who_has_not_began_the_registration_process() = runTest {
         val params = SendVerificationLinkParams(email = "juma@yahoo.com", link = "https://test.com")
-        val exp = expectFailure { api.sendVerificationLink(params).await() }
+        val exp = expectFailure { service.sendVerificationLink(params).await() }
         expect(exp.message).toBe(UserDidNotBeginRegistrationException("juma@yahoo.com").message)
     }
 }
