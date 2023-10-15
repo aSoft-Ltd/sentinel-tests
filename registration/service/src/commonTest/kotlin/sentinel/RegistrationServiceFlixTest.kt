@@ -11,7 +11,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
 import krono.SystemClock
 import lexi.ConsoleAppender
+import lexi.ConsoleAppenderOptions
+import lexi.JsonLogFormatter
 import lexi.Logger
+import lexi.SimpleLogFormatter
 import raven.AddressInfo
 import raven.LocalMemoryMailbox
 import raven.MailBox
@@ -36,11 +39,11 @@ class RegistrationServiceFlixTest {
 
     private val service: RegistrationService by lazy {
         val scope = CoroutineScope(SupervisorJob())
-        val client = MongoClient.create("mongodb://root:pass@localhost:27017")
+        val client = MongoClient.create("mongodb://root:pass@localhost:8079")
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
         val mailer = MockMailer(MockMailerConfig(box = mailbox))
-        val logger = Logger(ConsoleAppender())
+        val logger = Logger(ConsoleAppender(ConsoleAppenderOptions(formatter = SimpleLogFormatter())))
         RegistrationServiceFlix(RegistrationServiceFlixConfig(scope, db, clock, mailer, logger, emailConfig))
     }
 

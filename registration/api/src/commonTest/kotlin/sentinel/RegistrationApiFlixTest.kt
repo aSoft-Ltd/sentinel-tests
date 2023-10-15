@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import lexi.ConsoleAppender
+import lexi.JsonLogFormatter
 import lexi.LogLevel
 import lexi.Logger
 import sentinel.exceptions.InvalidTokenForRegistrationException
@@ -28,7 +29,7 @@ class RegistrationApiFlixTest {
         }
         val endpoint = RegistrationEndpoint("http://127.0.0.1:8080/api/v1")
         val json = Json { }
-        val logger = Logger(ConsoleAppender(level = LogLevel.DEBUG))
+        val logger = Logger(ConsoleAppender(level = LogLevel.DEBUG, formatter = JsonLogFormatter()))
         RegistrationApiFlix(RegistrationFlixApiConfig(scope, link, client, logger, endpoint, json))
     }
 

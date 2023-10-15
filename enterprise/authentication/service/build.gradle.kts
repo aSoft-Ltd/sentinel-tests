@@ -26,10 +26,10 @@ kotlin {
 }
 
 configure<DockateExtension> {
-    addDockerContainerTasksForMongo(
-        image = "mongodb/mongodb-community-server:7.0.0-ubuntu2204",
-        username = "root",
-        password = "pass",
-        port = 27017
-    )
+//    addDockerContainerTasksForMongo(
+//        image = "mongodb/mongodb-community-server:7.0.0-ubuntu2204",
+//        username = "root",
+//        password = "pass",
+//        port = 27017
+//    )
 }

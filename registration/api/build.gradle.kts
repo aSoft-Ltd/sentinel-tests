@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
-import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
-
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
