@@ -13,21 +13,26 @@ import lexi.ConsoleAppender
 import lexi.JsonLogFormatter
 import lexi.LogLevel
 import lexi.Logger
+import raven.FlixMailBoxOptions
+import raven.FlixMailbox
 import sentinel.exceptions.InvalidTokenForRegistrationException
 import sentinel.exceptions.UserAlreadyBeganRegistrationException
+import sentinel.exceptions.UserAlreadyCompletedRegistrationException
 import sentinel.exceptions.UserDidNotBeginRegistrationException
+import sentinel.params.SendVerificationLinkParams
 import sentinel.params.SignUpParams
 import sentinel.params.VerificationParams
 
 class RegistrationApiFlixTest {
 
+    private val scope = CoroutineScope(SupervisorJob())
+    private val url = "http://127.0.0.1:8080/api/v1"
+    private val box = FlixMailbox(FlixMailBoxOptions(url = "http://127.0.0.1:8080/api/v1",scope))
+
     private val api: RegistrationApi by lazy {
-        val scope = CoroutineScope(SupervisorJob())
         val link = "http://test.com"
-        val client = HttpClient {
-            developmentMode = true
-        }
-        val endpoint = RegistrationEndpoint("http://127.0.0.1:8080/api/v1")
+        val client = HttpClient { developmentMode = true }
+        val endpoint = RegistrationEndpoint(url)
         val json = Json { }
         val logger = Logger(ConsoleAppender(level = LogLevel.DEBUG, formatter = JsonLogFormatter()))
         RegistrationApiFlix(RegistrationFlixApiConfig(scope, link, client, logger, endpoint, json))
@@ -40,6 +45,22 @@ class RegistrationApiFlixTest {
             api.signUp(SignUpParams("Anderson", "andy@lamax.com")).await()
         }
         expect(exp.message).toBe(UserAlreadyBeganRegistrationException("andy@lamax.com").message)
+    }
+
+    @Test
+    fun should_be_able_to_complete_registration() = runTest {
+        val params1 = SignUpParams("Tony Stark", "tony@stark.com")
+        val res = api.signUp(params1).await()
+        
+        val email = box.anticipate()
+        api.sendVerificationLink("tony@stark.com").await()
+
+        val token = email.await().split(" ").last()
+
+        api.verify(VerificationParams(email = res.email, token = token)).await()
+
+        val exp = expectFailure { api.signUp(params1).await() }
+        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException(params1.email).message)
     }
 
     @Test
