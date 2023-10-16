@@ -19,7 +19,6 @@ import sentinel.exceptions.InvalidTokenForRegistrationException
 import sentinel.exceptions.UserAlreadyBeganRegistrationException
 import sentinel.exceptions.UserAlreadyCompletedRegistrationException
 import sentinel.exceptions.UserDidNotBeginRegistrationException
-import sentinel.params.SendVerificationLinkParams
 import sentinel.params.SignUpParams
 import sentinel.params.VerificationParams
 
