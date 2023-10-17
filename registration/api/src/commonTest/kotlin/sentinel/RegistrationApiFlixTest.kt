@@ -33,7 +33,7 @@ class RegistrationApiFlixTest {
         val client = HttpClient { developmentMode = true }
         val endpoint = RegistrationEndpoint(url)
         val json = Json { }
-        val logger = Logger(ConsoleAppender(level = LogLevel.DEBUG, formatter = JsonLogFormatter()))
+        val logger = Logger(ConsoleAppender(level = LogLevel.INFO, formatter = JsonLogFormatter()))
         RegistrationApiFlix(RegistrationFlixApiConfig(scope, link, client, logger, endpoint, json))
     }
 

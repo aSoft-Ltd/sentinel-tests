@@ -14,12 +14,12 @@ import lexi.ConsoleAppender
 import lexi.ConsoleAppenderOptions
 import lexi.JsonLogFormatter
 import lexi.Logger
-import lexi.SimpleLogFormatter
 import raven.AddressInfo
 import raven.LocalMemoryMailbox
 import raven.MailBox
 import raven.MockMailer
-import raven.MockMailerConfig
+import raven.MockMailerOptions
+import raven.TemplatedEmailOptions
 import sentinel.exceptions.InvalidTokenForRegistrationException
 import sentinel.exceptions.UserAlreadyCompletedRegistrationException
 import sentinel.exceptions.UserDidNotBeginRegistrationException
@@ -31,10 +31,10 @@ class RegistrationServiceFlixTest {
 
     private val mailbox: MailBox = LocalMemoryMailbox()
 
-    private val emailConfig = RegistrationEmailConfig(
+    private val emailOptions = TemplatedEmailOptions(
         address = AddressInfo(email = "registration@test.com", name = "Tester"),
         subject = "Please Verify Your Email",
-        template = "Hi {{name}}, here is your token {{token}}"
+        template = "Hi {{name}}, here is your verification token {{token}}"
     )
 
     private val service: RegistrationService by lazy {
@@ -42,9 +42,9 @@ class RegistrationServiceFlixTest {
         val client = MongoClient.create("mongodb://root:pass@localhost:8079")
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
-        val mailer = MockMailer(MockMailerConfig(box = mailbox))
-        val logger = Logger(ConsoleAppender(ConsoleAppenderOptions(formatter = SimpleLogFormatter())))
-        RegistrationServiceFlix(RegistrationServiceFlixConfig(scope, db, clock, mailer, logger, emailConfig))
+        val mailer = MockMailer(MockMailerOptions(box = mailbox))
+        val logger = Logger(ConsoleAppender(ConsoleAppenderOptions(formatter = JsonLogFormatter())))
+        RegistrationServiceFlix(RegistrationServiceFlixOptions(scope, db, clock, mailer, logger, emailOptions))
     }
 
     @Test
@@ -55,7 +55,7 @@ class RegistrationServiceFlixTest {
         val message = mailbox.load().await().first { msg ->
             msg.to.map { it.email.value }.contains(res.email)
         }
-        expect(message.subject).toBe(emailConfig.subject)
+        expect(message.subject).toBe(emailOptions.subject)
         expect(message.body).toContain("Hi Pepper Pots")
     }
 
