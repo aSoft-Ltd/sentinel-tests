@@ -46,7 +46,7 @@ class AuthenticationServiceFlixTest {
             subject = "Sentinel Password Recovery",
             template = "Hi {{name}}, here is your recovery token {{token}}"
         )
-        AuthenticationServiceFlix(AuthenticationServiceFlixOptions(scope, db, clock, mailer, logger, email))
+        AuthenticationServiceFlix(AuthenticationServiceFlixOptions(scope, db, mailer, logger, email))
     }
 
     @Test
