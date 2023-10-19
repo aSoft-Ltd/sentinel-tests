@@ -21,9 +21,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(projects.sentinelRegistrationApi)
+                implementation(libs.sentinel.registration.api.flix)
                 implementation(libs.sentinel.enterprise.authentication.api.flix)
+                implementation(libs.raven.flix.receiver)
                 implementation(kotlinx.serialization.json)
                 implementation(libs.lexi.console)
+                implementation(libs.keep.mock)
                 implementation(libs.kommander.coroutines)
             }
         }

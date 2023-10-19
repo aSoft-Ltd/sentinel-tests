@@ -8,6 +8,6 @@ A module dedicated to testing different sentinel implementations
 Make sure you have docker installed
 
 ### Steps
-- run `./gradlew :sentinel-registration-service:runMongoContainer`
+- run `./gradlew :sentinel-registration-service:dockerComposeUpSentinelTesting`
 - run `./gradlew :sentinel-registration-service:build`
-- run `./gradlew :sentinel-registration-service:removeMongoContainer`
+- run `./gradlew :sentinel-registration-service:dockerComposeDownSentinelTesting`
