@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
 import lexi.ConsoleAppender
 import lexi.JsonLogFormatter
 import lexi.LogLevel
-import lexi.Logger
+import lexi.loggerFactory
 import raven.FlixMailBoxOptions
 import raven.FlixMailbox
 import sentinel.exceptions.InvalidTokenForRegistrationException
@@ -25,15 +25,15 @@ import sentinel.params.VerificationParams
 class RegistrationApiFlixTest {
 
     private val scope = CoroutineScope(SupervisorJob())
-    private val url = "http://127.0.0.1:8080/api/v1"
-    private val box = FlixMailbox(FlixMailBoxOptions(url = "http://127.0.0.1:8080/api/v1",scope))
+    private val url = "http://192.168.1.109:8080/api/v1"
+    private val box = FlixMailbox(FlixMailBoxOptions(url, scope))
 
     private val api: RegistrationApi by lazy {
         val link = "http://test.com"
         val client = HttpClient { developmentMode = true }
         val endpoint = RegistrationEndpoint(url)
         val json = Json { }
-        val logger = Logger(ConsoleAppender(level = LogLevel.INFO, formatter = JsonLogFormatter()))
+        val logger = loggerFactory { add(ConsoleAppender(level = LogLevel.INFO, formatter = JsonLogFormatter())) }
         RegistrationApiFlix(RegistrationApiFlixOptions(scope, link, client, logger, endpoint, json))
     }
 
@@ -50,7 +50,7 @@ class RegistrationApiFlixTest {
     fun should_be_able_to_complete_registration() = runTest {
         val params1 = SignUpParams("Tony Stark", "tony@stark.com")
         val res = api.signUp(params1).await()
-        
+
         val email = box.anticipate()
         api.sendVerificationLink("tony@stark.com").await()
 

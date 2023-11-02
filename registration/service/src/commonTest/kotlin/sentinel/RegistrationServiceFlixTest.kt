@@ -14,6 +14,7 @@ import lexi.ConsoleAppender
 import lexi.ConsoleAppenderOptions
 import lexi.JsonLogFormatter
 import lexi.Logger
+import lexi.LoggerFactory
 import raven.AddressInfo
 import raven.LocalMemoryMailbox
 import raven.MailBox
@@ -43,7 +44,9 @@ class RegistrationServiceFlixTest {
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
         val mailer = MockMailer(MockMailerOptions(box = mailbox))
-        val logger = Logger(ConsoleAppender(ConsoleAppenderOptions(formatter = JsonLogFormatter())))
+        val logger = LoggerFactory().apply {
+            add(ConsoleAppender(ConsoleAppenderOptions(formatter = JsonLogFormatter())))
+        }
         RegistrationServiceFlix(RegistrationServiceFlixOptions(scope, db, clock, mailer, logger, emailOptions))
     }
 
