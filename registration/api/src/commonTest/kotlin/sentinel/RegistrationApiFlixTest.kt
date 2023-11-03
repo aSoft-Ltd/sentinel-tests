@@ -12,9 +12,13 @@ import kotlinx.serialization.json.Json
 import lexi.ConsoleAppender
 import lexi.JsonLogFormatter
 import lexi.LogLevel
+import lexi.SimpleLogFormatter
 import lexi.loggerFactory
+import raven.BusEmailReceiver
 import raven.FlixMailBoxOptions
 import raven.FlixMailbox
+import sanity.RemoteBus
+import sanity.SanityEndpoint
 import sentinel.exceptions.InvalidTokenForRegistrationException
 import sentinel.exceptions.UserAlreadyBeganRegistrationException
 import sentinel.exceptions.UserAlreadyCompletedRegistrationException
@@ -27,14 +31,15 @@ class RegistrationApiFlixTest {
     private val scope = CoroutineScope(SupervisorJob())
 //    private val url = "http://192.168.1.109:8080/api/v1"
     private val url = "http://127.0.0.1:8080/api/v1"
-    private val box = FlixMailbox(FlixMailBoxOptions(url, scope))
+    val bus = RemoteBus(SanityEndpoint(url))
+    val receiver = BusEmailReceiver(bus)
 
     private val api: RegistrationApi by lazy {
         val link = "http://test.com"
         val client = HttpClient { developmentMode = true }
         val endpoint = RegistrationEndpoint(url)
         val json = Json { }
-        val logger = loggerFactory { add(ConsoleAppender(level = LogLevel.INFO, formatter = JsonLogFormatter())) }
+        val logger = loggerFactory { add(ConsoleAppender(level = LogLevel.DEBUG, formatter = SimpleLogFormatter())) }
         RegistrationApiFlix(RegistrationApiFlixOptions(scope, link, client, logger, endpoint, json))
     }
 
@@ -52,10 +57,9 @@ class RegistrationApiFlixTest {
         val params1 = SignUpParams("Tony Stark", "tony@stark.com")
         val res = api.signUp(params1).await()
 
-        val email = box.anticipate()
+        val email = receiver.anticipate()
         api.sendVerificationLink("tony@stark.com").await()
-
-        val token = email.await().split(" ").last()
+        val token = email.await().body.split(" ").last()
 
         api.verify(VerificationParams(email = res.email, token = token)).await()
 

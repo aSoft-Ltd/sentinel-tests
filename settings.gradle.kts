@@ -20,7 +20,7 @@ setOf(
     "kronecker", "epsilon-api", "krono-core", "hormone", "identifier-api",
     "kommerce", "kollections", "koncurrent", "kommander", "cabinet-api",
     "sentinel-core", "raven-client", "cinematic", "yeti", "snitch",
-    "identifier-client", "krono-client", "geo-client", "epsilon-client",
+    "identifier-client", "krono-client", "geo-client", "epsilon-client", "sanity",
     "sentinel-client", "sentinel-server", "raven-core", "raven-client", "raven-server"
 ).forEach { includeBuild("../$it") }
 

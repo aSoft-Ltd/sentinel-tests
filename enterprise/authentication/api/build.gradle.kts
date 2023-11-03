@@ -29,6 +29,8 @@ kotlin {
                 implementation(libs.lexi.console)
                 implementation(libs.keep.mock)
                 implementation(libs.kommander.coroutines)
+                implementation(libs.sanity.remote)
+                implementation(libs.raven.bus)
             }
         }
 

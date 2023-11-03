@@ -17,6 +17,7 @@ import lexi.loggerFactory
 import raven.Address
 import raven.BusEmailReceiver
 import raven.BusEmailSender
+import raven.BusEmailSenderOptions
 import raven.ConsoleEmailSender
 import raven.EmailReceiver
 import raven.TemplatedEmailOptions
@@ -32,12 +33,12 @@ import sentinel.params.VerificationParams
 class RegistrationServiceFlixTest {
 
     private val bus = LocalBus()
-    private val receiver: EmailReceiver = BusEmailReceiver(bus)
+    private val receiver = BusEmailReceiver(bus)
 
     private val emailOptions = TemplatedEmailOptions(
         address = Address(email = "registration@test.com", name = "Tester"),
         subject = "Please Verify Your Email",
-        template = "Hi {{name}}, here is your verification token {{token}}"
+        template = "Hi {{name}}, click on this link to verify your token {{link}}?token={{token}}"
     )
 
     private val service: RegistrationService by lazy {
@@ -47,7 +48,7 @@ class RegistrationServiceFlixTest {
         val clock = SystemClock()
         val mailer = emailSender {
             add(ConsoleEmailSender())
-            add(BusEmailSender(bus))
+            add(BusEmailSender(BusEmailSenderOptions(bus)))
         }
         val logger = loggerFactory {
             add(ConsoleAppender(ConsoleAppenderOptions(formatter = JsonLogFormatter())))
@@ -74,7 +75,8 @@ class RegistrationServiceFlixTest {
 
         val email = receiver.anticipate()
         service.sendVerificationLink(params2).await()
-        val token = email.await().body.split(" ").last()
+        val link = email.await().body.split(" ").last()
+        val token = link.split("=").last()
 
         service.verify(VerificationParams(email = res.email, token = token)).await()
 

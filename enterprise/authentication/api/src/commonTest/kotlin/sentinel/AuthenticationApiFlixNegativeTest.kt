@@ -11,9 +11,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import lexi.ConsoleAppender
+import lexi.ConsoleAppenderOptions
 import lexi.JsonLogFormatter
 import lexi.Logger
 import lexi.SimpleLogFormatter
+import lexi.loggerFactory
 import raven.FlixMailBoxOptions
 import raven.FlixMailbox
 import raven.MailBox
@@ -26,14 +28,16 @@ class AuthenticationApiFlixNegativeTest {
     private val scope = CoroutineScope(SupervisorJob())
     private val url = "http://127.0.0.2:8080/api/v1"
     private val client = HttpClient { expectSuccess = false }
-    private val logger = Logger(ConsoleAppender(formatter = SimpleLogFormatter()))
+    private val logger = loggerFactory {
+        add(ConsoleAppender(ConsoleAppenderOptions(formatter = SimpleLogFormatter())))
+    }
     private val codec = Json { ignoreUnknownKeys = true }
 
     val authentication by lazy {
         val options = AuthenticationApiFlixOptions(
             scope = scope,
             link = "http://sentinel.com/recover",
-            client = client,
+            http = client,
             logger = logger,
             cache = CacheMock(),
             endpoint = AuthenticationEndpoint(url),
