@@ -13,14 +13,15 @@ import krono.SystemClock
 import lexi.ConsoleAppender
 import lexi.ConsoleAppenderOptions
 import lexi.JsonLogFormatter
-import lexi.Logger
-import lexi.LoggerFactory
-import raven.AddressInfo
-import raven.LocalMemoryMailbox
-import raven.MailBox
-import raven.MockMailer
-import raven.MockMailerOptions
+import lexi.loggerFactory
+import raven.Address
+import raven.BusEmailReceiver
+import raven.BusEmailSender
+import raven.ConsoleEmailSender
+import raven.EmailReceiver
 import raven.TemplatedEmailOptions
+import raven.emailSender
+import sanity.LocalBus
 import sentinel.exceptions.InvalidTokenForRegistrationException
 import sentinel.exceptions.UserAlreadyCompletedRegistrationException
 import sentinel.exceptions.UserDidNotBeginRegistrationException
@@ -30,10 +31,11 @@ import sentinel.params.VerificationParams
 
 class RegistrationServiceFlixTest {
 
-    private val mailbox: MailBox = LocalMemoryMailbox()
+    private val bus = LocalBus()
+    private val receiver: EmailReceiver = BusEmailReceiver(bus)
 
     private val emailOptions = TemplatedEmailOptions(
-        address = AddressInfo(email = "registration@test.com", name = "Tester"),
+        address = Address(email = "registration@test.com", name = "Tester"),
         subject = "Please Verify Your Email",
         template = "Hi {{name}}, here is your verification token {{token}}"
     )
@@ -43,8 +45,11 @@ class RegistrationServiceFlixTest {
         val client = MongoClient.create("mongodb://root:pass@localhost:8079")
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
-        val mailer = MockMailer(MockMailerOptions(box = mailbox))
-        val logger = LoggerFactory().apply {
+        val mailer = emailSender {
+            add(ConsoleEmailSender())
+            add(BusEmailSender(bus))
+        }
+        val logger = loggerFactory {
             add(ConsoleAppender(ConsoleAppenderOptions(formatter = JsonLogFormatter())))
         }
         RegistrationServiceFlix(RegistrationServiceFlixOptions(scope, db, clock, mailer, logger, emailOptions))
@@ -54,10 +59,9 @@ class RegistrationServiceFlixTest {
     fun should_be_able_to_send_email_verification_for_a_user_who_has_began_the_registration_process() = runTest {
         val res = service.signUp(SignUpParams("Pepper Pots", "pepper@lamax.com")).await()
         val params = SendVerificationLinkParams(email = res.email, link = "https://test.com")
+        val email = receiver.anticipate()
         service.sendVerificationLink(params).await()
-        val message = mailbox.load().await().first { msg ->
-            msg.to.map { it.email.value }.contains(res.email)
-        }
+        val message = email.await()
         expect(message.subject).toBe(emailOptions.subject)
         expect(message.body).toContain("Hi Pepper Pots")
     }
@@ -68,11 +72,9 @@ class RegistrationServiceFlixTest {
         val res = service.signUp(params1).await()
         val params2 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
 
+        val email = receiver.anticipate()
         service.sendVerificationLink(params2).await()
-
-        val token = mailbox.load().await().first { msg ->
-            msg.to.map { it.email.value }.contains(res.email)
-        }.body.split(" ").last()
+        val token = email.await().body.split(" ").last()
 
         service.verify(VerificationParams(email = res.email, token = token)).await()
 

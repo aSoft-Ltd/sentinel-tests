@@ -13,6 +13,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.sentinel.registration.service.flix)
+                implementation(libs.raven.bus)
+                implementation(libs.sanity.local)
                 implementation(libs.kommander.coroutines)
             }
         }

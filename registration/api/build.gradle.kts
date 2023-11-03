@@ -21,6 +21,8 @@ kotlin {
                 implementation(libs.sentinel.registration.api.flix)
                 implementation(kotlinx.serialization.json)
                 implementation(libs.lexi.console)
+                implementation(libs.raven.bus)
+                implementation(libs.sanity.remote)
                 implementation(libs.raven.flix.receiver)
                 implementation(libs.kommander.coroutines)
             }

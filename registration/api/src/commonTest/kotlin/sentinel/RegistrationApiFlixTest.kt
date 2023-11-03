@@ -25,7 +25,8 @@ import sentinel.params.VerificationParams
 class RegistrationApiFlixTest {
 
     private val scope = CoroutineScope(SupervisorJob())
-    private val url = "http://192.168.1.109:8080/api/v1"
+//    private val url = "http://192.168.1.109:8080/api/v1"
+    private val url = "http://127.0.0.1:8080/api/v1"
     private val box = FlixMailbox(FlixMailBoxOptions(url, scope))
 
     private val api: RegistrationApi by lazy {
