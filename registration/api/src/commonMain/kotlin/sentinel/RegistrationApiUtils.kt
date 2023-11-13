@@ -2,7 +2,6 @@ package sentinel
 
 import koncurrent.later.await
 import raven.EmailReceiver
-import raven.MailBox
 import sentinel.params.SignUpParams
 import sentinel.params.UserAccountParams
 import sentinel.params.VerificationParams
