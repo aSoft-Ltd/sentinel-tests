@@ -43,7 +43,7 @@ class RegistrationServiceFlixTest {
 
     private val service: RegistrationService by lazy {
         val scope = CoroutineScope(SupervisorJob())
-        val client = MongoClient.create("mongodb://root:pass@localhost:8079")
+        val client = MongoClient.create("mongodb://root:pass@localhost:27017")
         val db = client.getDatabase("test-trial")
         val clock = SystemClock()
         val mailer = emailSender {

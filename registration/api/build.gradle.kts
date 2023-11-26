@@ -8,7 +8,7 @@ description = "A kotlin multiplatform server registration sdk"
 
 kotlin {
     jvm { library() }
-    if (Targeting.JS) js(IR) { library() }
+    if (Targeting.JS) js(IR) { library(testTimeout = 30000) }
 //    if (Targeting.WASM) wasm { library() }
     val osxTargets = if (Targeting.OSX) osxTargets() else listOf()
     val ndkTargets = if (Targeting.NDK) ndkTargets() else listOf()

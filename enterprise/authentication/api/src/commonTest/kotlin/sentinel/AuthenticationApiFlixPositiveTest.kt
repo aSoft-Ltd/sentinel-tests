@@ -18,6 +18,7 @@ import raven.MailBox
 import sentinel.params.PasswordResetParams
 import sentinel.params.SignInParams
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import lexi.ConsoleAppenderOptions
 import lexi.loggerFactory
 import raven.BusEmailReceiver
@@ -58,7 +59,8 @@ class AuthenticationApiFlixPositiveTest {
             logger = logger,
             cache = CacheMock(),
             endpoint = AuthenticationEndpoint(url),
-            codec = codec
+            codec = codec,
+            sessionCacheKey = "authentication.session"
         )
         AuthenticationApiFlix(options)
     }
@@ -81,7 +83,7 @@ class AuthenticationApiFlixPositiveTest {
     }
 
     @Test
-    fun should_be_able_to_recover_a_user_password() = runTest {
+    fun should_be_able_to_recover_a_user_password() = runTest(timeout = 30.seconds) {
         val email = "jane@doe.com"
         registration.register(receiver, name = "Jane Doe", email = email, password = email)
         val mail = receiver.anticipate()

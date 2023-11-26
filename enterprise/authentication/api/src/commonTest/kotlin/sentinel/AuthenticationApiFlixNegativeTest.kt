@@ -41,7 +41,8 @@ class AuthenticationApiFlixNegativeTest {
             logger = logger,
             cache = CacheMock(),
             endpoint = AuthenticationEndpoint(url),
-            codec = codec
+            codec = codec,
+            sessionCacheKey = "authentication.session"
         )
         AuthenticationApiFlix(options)
     }
