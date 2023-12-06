@@ -9,17 +9,20 @@ import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import krono.SystemClock
 import lexi.ConsoleAppender
 import lexi.ConsoleAppenderOptions
 import lexi.JsonLogFormatter
 import lexi.loggerFactory
 import raven.Address
+import raven.BusEmailOptions
 import raven.BusEmailReceiver
 import raven.BusEmailSender
-import raven.BusEmailSenderOptions
+import raven.BusEmailTopic
 import raven.ConsoleEmailSender
-import raven.EmailReceiver
+import raven.EmailTemplate
+import raven.MockEmailSender
 import raven.TemplatedEmailOptions
 import raven.emailSender
 import sanity.LocalBus
@@ -33,12 +36,22 @@ import sentinel.params.VerificationParams
 class RegistrationServiceFlixTest {
 
     private val bus = LocalBus()
-    private val receiver = BusEmailReceiver(bus)
+    private val topic = BusEmailTopic()
+    private val codec = Json { }
+    val beo = BusEmailOptions(bus, topic, codec)
+    private val receiver = BusEmailReceiver(beo)
 
+    private val mock = MockEmailSender()
+    private val domain = "http://sentinel.test"
+
+    private val template = "Hi {{name}}, Welcome to {{brand}}\nClick on this link to verify your token\n{{link}}?token={{token}}"
     private val emailOptions = TemplatedEmailOptions(
-        address = Address(email = "registration@test.com", name = "Tester"),
+        from = Address(email = "registration@test.com", name = "Tester"),
         subject = "Please Verify Your Email",
-        template = "Hi {{name}}, click on this link to verify your token {{link}}?token={{token}}"
+        template = EmailTemplate(template, template),
+        brand = "Sentinel",
+        domain = domain,
+        address = "Sentinel HQ, Asgard"
     )
 
     private val service: RegistrationService by lazy {
@@ -48,12 +61,17 @@ class RegistrationServiceFlixTest {
         val clock = SystemClock()
         val mailer = emailSender {
             add(ConsoleEmailSender())
-            add(BusEmailSender(BusEmailSenderOptions(bus)))
+            add(BusEmailSender(beo))
+            add(mock)
         }
         val logger = loggerFactory {
             add(ConsoleAppender(ConsoleAppenderOptions(formatter = JsonLogFormatter())))
         }
-        RegistrationServiceFlix(RegistrationServiceFlixOptions(scope, db, clock, mailer, logger, emailOptions))
+        val database = RegistrationServiceFlixOptions.Database(
+            registration = client.getDatabase("registration"),
+            authentication = client.getDatabase("authentication")
+        )
+        RegistrationServiceFlix(RegistrationServiceFlixOptions(scope, database, clock, mailer, logger, emailOptions))
     }
 
     @Test
@@ -76,6 +94,43 @@ class RegistrationServiceFlixTest {
         val email = receiver.anticipate()
         service.sendVerificationLink(params2).await()
         val link = email.await().body.split(" ").last()
+        val token = link.split("=").last()
+
+        service.verify(VerificationParams(email = res.email, token = token)).await()
+
+        val exp = expectFailure { service.signUp(params1).await() }
+        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException(params1.email).message)
+    }
+
+    @Test
+    fun should_be_able_to_verify_multiple_times() = runTest {
+        val params1 = SignUpParams("Steve Rogers", "steve@rogers.com")
+        val res = service.signUp(params1).await()
+        val params2 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
+
+        val email = receiver.anticipate()
+        service.sendVerificationLink(params2).await()
+        val link = email.await().body.split(" ").last()
+        val token = link.split("=").last()
+
+        repeat(10) {
+            service.verify(VerificationParams(email = res.email, token = token)).await()
+        }
+
+        val exp = expectFailure { service.signUp(params1).await() }
+        expect(exp.message).toBe(UserAlreadyCompletedRegistrationException(params1.email).message)
+    }
+
+    @Test
+    fun should_be_able_to_complete_registration_with_any_token() = runTest {
+        val params1 = SignUpParams("Jarvis Stark", "jarvis+t2@stark.com")
+        val res = service.signUp(params1).await()
+        val params2 = SendVerificationLinkParams(email = res.email, link = "https://test.com")
+
+        repeat(10) { service.sendVerificationLink(params2).await() }
+
+        val email = mock.outbox.random()
+        val link = email.body.split(" ").last()
         val token = link.split("=").last()
 
         service.verify(VerificationParams(email = res.email, token = token)).await()

@@ -23,7 +23,7 @@ kotlin {
                 implementation(libs.lexi.console)
                 implementation(libs.raven.bus)
                 implementation(libs.sanity.remote)
-                implementation(libs.raven.flix.receiver)
+                implementation(libs.raven.bus)
                 implementation(libs.kommander.coroutines)
             }
         }
