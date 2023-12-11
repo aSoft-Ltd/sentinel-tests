@@ -5,7 +5,7 @@ package sentinel.params
 
 import geo.GeoLocation
 import kotlinx.serialization.Serializable
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 @Serializable
 class LocationOnBoardingParams(

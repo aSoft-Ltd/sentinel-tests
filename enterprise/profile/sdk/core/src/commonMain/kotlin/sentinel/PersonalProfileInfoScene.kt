@@ -17,7 +17,7 @@ import sentinel.transformers.toProfileParams
 import symphony.Form
 import symphony.toForm
 import symphony.toSubmitConfig
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class PersonalProfileInfoScene(
     private val config: ProfileScenesConfig<ProfileApiProvider>

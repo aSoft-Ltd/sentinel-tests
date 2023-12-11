@@ -17,7 +17,7 @@ import sentinel.fields.CurrencyFields
 import symphony.Visibility
 import symphony.toForm
 import symphony.toSubmitConfig
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class OnBoardingScene(config: OnboardingScenesConfig<ProfileApi>) : BaseScene() {
 

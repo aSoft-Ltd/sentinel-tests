@@ -8,7 +8,7 @@ import neat.required
 import sentinel.AccountType
 import symphony.Fields
 import symphony.text
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class BusinessNameFields internal constructor(
     type: AccountType?, params: BusinessNameOutput

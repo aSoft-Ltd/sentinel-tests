@@ -9,7 +9,7 @@ import sentinel.fields.BusinessNameFields
 import sentinel.fields.CurrencyFields
 import sentinel.fields.LocationFields
 import symphony.FormStage
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 sealed class OnBoardingStage : FormStage {
     data class Account(

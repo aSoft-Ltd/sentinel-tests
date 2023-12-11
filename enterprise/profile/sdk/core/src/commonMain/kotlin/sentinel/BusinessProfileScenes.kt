@@ -3,7 +3,7 @@
 
 package sentinel
 
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class BusinessProfileScenes(config: ProfileScenesConfig<ProfileApiProvider>) {
     val logo by lazy { BusinessLogoScene(config) }

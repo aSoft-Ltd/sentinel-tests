@@ -6,7 +6,7 @@ package sentinel.params
 import geo.Country
 import kash.Currency
 import kotlinx.serialization.Serializable
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 @Serializable
 class CurrencyOnBoardingParams(

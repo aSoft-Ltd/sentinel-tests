@@ -17,7 +17,7 @@ import koncurrent.toLater
 import symphony.Form
 import symphony.toForm
 import symphony.toSubmitConfig
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class BusinessInfoScene(
     private val config: ProfileScenesConfig<ProfileApiProvider>

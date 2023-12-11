@@ -5,7 +5,7 @@ package sentinel.fields
 
 import geo.address
 import symphony.Fields
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class AddressFields(output: OnboardingAddressOutput) : Fields<OnboardingAddressOutput>(output) {
     val address = address(

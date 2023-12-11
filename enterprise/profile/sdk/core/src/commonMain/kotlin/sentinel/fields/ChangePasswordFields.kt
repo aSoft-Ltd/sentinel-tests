@@ -9,7 +9,7 @@ import neat.execute
 import neat.required
 import symphony.Fields
 import symphony.password
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class ChangePasswordFields : Fields<ChangePasswordOutput>(ChangePasswordOutput()) {
     val current = password(

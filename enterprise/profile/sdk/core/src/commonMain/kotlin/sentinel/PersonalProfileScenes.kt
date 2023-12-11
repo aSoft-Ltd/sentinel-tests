@@ -3,7 +3,7 @@
 
 package sentinel
 
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class PersonalProfileScenes(config: ProfileScenesConfig<ProfileApiProvider>) {
     val picture by lazy { PersonalProfilePictureScene(config) }

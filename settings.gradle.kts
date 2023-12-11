@@ -21,7 +21,8 @@ setOf(
     "kommerce", "kollections", "koncurrent", "kommander", "cabinet-api",
     "sentinel-core", "raven-client", "cinematic", "yeti", "snitch",
     "identifier-client", "krono-client", "geo-client", "epsilon-client", "sanity",
-    "sentinel-client", "sentinel-server", "raven-core", "raven-client", "raven-server"
+    "sentinel-client", "sentinel-server", "raven-core", "raven-client", "raven-server",
+    "kotlinx-interoperable"
 ).forEach { includeBuild("../$it") }
 
 rootProject.name = "sentinel-tests"

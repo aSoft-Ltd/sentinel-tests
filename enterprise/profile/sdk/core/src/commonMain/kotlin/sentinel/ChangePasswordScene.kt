@@ -15,7 +15,7 @@ import sentinel.fields.ChangePasswordOutput
 import symphony.Form
 import symphony.toForm
 import symphony.toSubmitConfig
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class ChangePasswordScene(
     private val config: ProfileScenesConfig<ProfileApiProvider>

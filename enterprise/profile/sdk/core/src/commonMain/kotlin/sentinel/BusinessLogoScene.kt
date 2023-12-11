@@ -6,7 +6,7 @@ package sentinel
 import koncurrent.Later
 import symphony.ImageViewerUploader
 import symphony.ImageViewerUploaderState
-import kotlin.js.JsExport
+import kotlinx.JsExport
 
 class BusinessLogoScene(
     private val config: ProfileScenesConfig<ProfileApiProvider>
