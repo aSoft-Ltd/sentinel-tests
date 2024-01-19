@@ -26,6 +26,3 @@ setOf(
 ).forEach { includeBuild("../$it") }
 
 rootProject.name = "sentinel-tests"
-
-includeSubs("sentinel-registration", "registration", "service", "api")
-includeSubs("sentinel-enterprise-authentication", "enterprise/authentication", "service", "api")
